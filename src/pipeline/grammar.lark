@@ -1,0 +1,27 @@
+start: statement*
+
+// Em vez de "linhas", lidamos com um fluxo aplanado (Statements)
+?statement: label
+          | instruction
+          | directive
+
+label: NAME ":"
+directive: "." NAME [/[^\n]+/]
+
+?instruction: r_type | i_type | j_type | mem_type | halt_type
+
+r_type: NAME NAME "," NAME "," NAME
+i_type: NAME NAME "," NAME "," IMM
+mem_type: NAME NAME "," IMM "(" NAME ")"
+j_type: NAME NAME
+
+halt_type: "halt" -> halt_inst
+         | "nop"  -> nop_inst
+
+NAME: /[a-zA-Z_\$][a-zA-Z0-9_\.]*/
+IMM: /-?[0-9]+/
+COMMENT: /#[^\n]*/ | /;[^\n]*/
+
+%import common.WS
+%ignore WS
+%ignore COMMENT
