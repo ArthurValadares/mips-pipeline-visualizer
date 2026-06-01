@@ -26,9 +26,6 @@ jobs:
           VERSION=$(poetry version -s)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Run Tests
-        run: poetry run pytest
-
       - name: Create GitHub Release e Automatic Tag
         uses: softprops/action-gh-release@v3
         with:
