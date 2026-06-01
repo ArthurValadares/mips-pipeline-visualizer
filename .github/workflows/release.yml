@@ -1,0 +1,41 @@
+name: Gerar Release da Master
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Criar Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar Poetry
+        run: pipx install poetry
+
+      - name: Ler Versão do pyproject.toml
+        id: poetry_version
+        run: |
+          VERSION=$(poetry version -s)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Criar GitHub Release e Tag Automática
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.poetry_version.outputs.VERSION }}
+          name: Release ${{ steps.poetry_version.outputs.VERSION }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build do Pacote (Opcional)
+        run: poetry build
