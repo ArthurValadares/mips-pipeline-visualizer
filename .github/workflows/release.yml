@@ -10,24 +10,27 @@ permissions:
 
 jobs:
   build-and-release:
-    name: Criar Release
+    name: Create Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Instalar Poetry
+      - name: Install Poetry
         run: pipx install poetry
 
-      - name: Ler Versão do pyproject.toml
+      - name: Read pyproject.toml version
         id: poetry_version
         run: |
           VERSION=$(poetry version -s)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Criar GitHub Release e Tag Automática
-        uses: softprops/action-gh-release@v2
+      - name: Run Tests
+        run: poetry run pytest
+
+      - name: Create GitHub Release e Automatic Tag
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.poetry_version.outputs.VERSION }}
           name: Release ${{ steps.poetry_version.outputs.VERSION }}
@@ -37,5 +40,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build do Pacote (Opcional)
+      - name: Package Build
         run: poetry build
