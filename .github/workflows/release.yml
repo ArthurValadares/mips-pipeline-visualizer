@@ -5,35 +5,37 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     name: Criar Release
     runs-on: ubuntu-latest
 
-    if: github.event.head_commit.message != ''
-
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Gerar Tag de Versão Automática
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: minor
-          release_branches: master
-          tag_prefix: ""
+      - name: Instalar Poetry
+        run: pipx install poetry
 
-      - name: Criar GitHub Release
+      - name: Ler Versão do pyproject.toml
+        id: poetry_version
+        run: |
+          VERSION=$(poetry version -s)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Criar GitHub Release e Tag Automática
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          tag_name: ${{ steps.poetry_version.outputs.VERSION }}
+          name: Release ${{ steps.poetry_version.outputs.VERSION }}
+          generate_release_notes: true
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build do Pacote (Opcional)
+        run: poetry build
